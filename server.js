@@ -4,41 +4,35 @@ const cors = require("cors");
 
 require("dotenv").config();
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8080;
 
 const app = express();
 
 app.use(cors());
 
-app.listen(PORT, ()=>console.log(`app is running on port ${PORT}`));
-
-const data = require("./data/weather.json");
-
-function filterByLat(lat) {
-    const result = data.filter((city) => city.lat == lat);
-    return result;
-  }
-
-function filterByLon(lon) {
-    const result = data.filter((city) => city.lon == lon);
-    return result;
-  }
-
-  function fitlerByCity(cityName) {
-    const theCity = data.find((city) => city.city_name == cityName);
-    return theCity;
-  }
-
-
+const weatherData = require("./data/weather.json");
 
 app.get("/", (request, response) => {
-    response.json("Hello, City Explorer")
-})
+  response.json("Hello, City Explorer");
+});
 
-app.get("/weather", (request, response)=>{
-    // console.log(request.query.city_name)
-response.json("Whaaaat")
-// let dataToReturn = data;
+app.get("/weather", (request, response) => {
+    const lat = request.query.lat;
+    const lon = request.query.lon;
 
+    const cityObject = weatherData.find((city)=>{
+        return city.lon == lon && city.lat == lat;
+     })
+    
+    //  const city = cityObject.city_name
+     const day = cityObject.data.map((day)=>{
+        return {
+            description: `Low of ${day.low_temp}, high of ${day.high_temp} with ${day.weather.description}`,
+            date: day.valid_date
+        }
+     })
+   
+  response.json(day);
+});
 
-})
+app.listen(PORT, () => console.log(`app is running on port ${PORT}`));
